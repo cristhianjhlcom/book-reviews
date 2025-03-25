@@ -15,7 +15,8 @@ return new class extends Migration
             $table->id();
             $table->string('book_isbn', 20);
             $table->foreignId('user_id')->constrained('users')->cascadeOnDelete();
-            $table->text('message')->nullable();
+            $table->text('comment')->nullable();
+            $table->integer('rating')->default(0);
             $table->timestamps();
             $table->foreign('book_isbn')->references('isbn')->on('books')->cascadeOnDelete();
         });

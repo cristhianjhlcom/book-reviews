@@ -1,13 +1,82 @@
+import {
+    ColumnDef,
+    ColumnFiltersState,
+    SortingState,
+    VisibilityState,
+    flexRender,
+    getCoreRowModel,
+    getFilteredRowModel,
+    getPaginationRowModel,
+    getSortedRowModel,
+    useReactTable,
+} from '@tanstack/react-table';
+import { ArrowUpDown, ChevronDown, MoreHorizontal } from 'lucide-react';
+import * as React from 'react';
+
 import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Checkbox } from '@/components/ui/checkbox';
+import {
+    DropdownMenu,
+    DropdownMenuCheckboxItem,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuLabel,
+    DropdownMenuSeparator,
+    DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Table, TableBody, TableCaption, TableCell, TableFooter, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Textarea } from '@/components/ui/textarea';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import AppLayout from '@/layouts/app-layout';
-import { SharedData, type BreadcrumbItem } from '@/types';
-import { Head, useForm, usePage } from '@inertiajs/react';
-import { FormEventHandler } from 'react';
+import { BreadcrumbItem, Gender } from '@/types';
+import { Head } from '@inertiajs/react';
+
+const data: Payment[] = [
+    {
+        id: 'm5gr84i9',
+        amount: 316,
+        status: 'success',
+        email: 'ken99@example.com',
+    },
+    {
+        id: '3u1reuv4',
+        amount: 242,
+        status: 'success',
+        email: 'Abe45@example.com',
+    },
+    {
+        id: 'derv1ws0',
+        amount: 837,
+        status: 'processing',
+        email: 'Monserrat44@example.com',
+    },
+    {
+        id: '5kma53ae',
+        amount: 874,
+        status: 'success',
+        email: 'Silas22@example.com',
+    },
+    {
+        id: 'bhqecj4p',
+        amount: 721,
+        status: 'failed',
+        email: 'carmella@example.com',
+    },
+];
+
+export type Payment = {
+    id: string;
+    amount: number;
+    status: 'pending' | 'processing' | 'success' | 'failed';
+    email: string;
+};
+
+export type BookForm = {
+    isbn: string;
+    title: string;
+    slug: string;
+    gender?: Gender;
+    description: string;
+};
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
@@ -16,126 +85,200 @@ const breadcrumbs: BreadcrumbItem[] = [
     },
 ];
 
-type BookForm = {
-    isbn: string;
-    title: string;
-    slug: string;
-    gender: string;
-    description: string;
-};
+export const columns: ColumnDef<Payment>[] = [
+    {
+        id: 'select',
+        header: ({ table }) => (
+            <Checkbox
+                checked={table.getIsAllPageRowsSelected() || (table.getIsSomePageRowsSelected() && 'indeterminate')}
+                onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
+                aria-label="Select all"
+            />
+        ),
+        cell: ({ row }) => (
+            <Checkbox checked={row.getIsSelected()} onCheckedChange={(value) => row.toggleSelected(!!value)} aria-label="Select row" />
+        ),
+        enableSorting: false,
+        enableHiding: false,
+    },
+    {
+        accessorKey: 'status',
+        header: 'Status',
+        cell: ({ row }) => <div className="capitalize">{row.getValue('status')}</div>,
+    },
+    {
+        accessorKey: 'email',
+        header: ({ column }) => {
+            return (
+                <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}>
+                    Email
+                    <ArrowUpDown />
+                </Button>
+            );
+        },
+        cell: ({ row }) => <div className="lowercase">{row.getValue('email')}</div>,
+    },
+    {
+        accessorKey: 'amount',
+        header: () => <div className="text-right">Amount</div>,
+        cell: ({ row }) => {
+            const amount = parseFloat(row.getValue('amount'));
+
+            // Format the amount as a dollar amount
+            const formatted = new Intl.NumberFormat('en-US', {
+                style: 'currency',
+                currency: 'USD',
+            }).format(amount);
+
+            return <div className="text-right font-medium">{formatted}</div>;
+        },
+    },
+    {
+        id: 'actions',
+        enableHiding: false,
+        cell: ({ row }) => {
+            const payment = row.original;
+
+            return (
+                <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" className="h-8 w-8 p-0">
+                            <span className="sr-only">Open menu</span>
+                            <MoreHorizontal />
+                        </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                        <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                        <DropdownMenuItem onClick={() => navigator.clipboard.writeText(payment.id)}>Copy payment ID</DropdownMenuItem>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem>View customer</DropdownMenuItem>
+                        <DropdownMenuItem>View payment details</DropdownMenuItem>
+                    </DropdownMenuContent>
+                </DropdownMenu>
+            );
+        },
+    },
+];
 
 export default function Dashboard() {
+    /*
     const { books, genders } = usePage<SharedData>().props;
+    const gender =genders.find((gender) => gender.id) ?? {} as Gender;
     const { data, setData, post, processing, errors, reset } = useForm<Required<BookForm>>({
         isbn: '',
         title: '',
         slug: '',
-        gender: genders.find((gender) => gender.id),
+        gender,
         description: '',
     });
+    */
+    const [sorting, setSorting] = React.useState<SortingState>([]);
+    const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
+    const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({});
+    const [rowSelection, setRowSelection] = React.useState({});
 
-    const submit: FormEventHandler = (e) => {
-        e.preventDefault();
-        console.log('data :: ', data);
-    };
+    const table = useReactTable({
+        data,
+        columns,
+        onSortingChange: setSorting,
+        onColumnFiltersChange: setColumnFilters,
+        getCoreRowModel: getCoreRowModel(),
+        getPaginationRowModel: getPaginationRowModel(),
+        getSortedRowModel: getSortedRowModel(),
+        getFilteredRowModel: getFilteredRowModel(),
+        onColumnVisibilityChange: setColumnVisibility,
+        onRowSelectionChange: setRowSelection,
+        state: {
+            sorting,
+            columnFilters,
+            columnVisibility,
+            rowSelection,
+        },
+    });
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Dashboard" />
-            <header className="flex justify-end px-4">
-                <Dialog>
-                    <DialogTrigger asChild>
-                        <Button variant="outline">Add book</Button>
-                    </DialogTrigger>
-                    <DialogContent className="sm:max-w-[425px]">
-                        <DialogHeader>
-                            <DialogTitle>Edit profile</DialogTitle>
-                            <DialogDescription>Make changes to your profile here. Click save when you're done.</DialogDescription>
-                        </DialogHeader>
-                        <div className="grid gap-4 py-4">
-                            <div className="grid grid-cols-4 items-center gap-4">
-                                <Label htmlFor="isbn" className="text-right">
-                                    ISBN
-                                </Label>
-                                <Input id="isbn" className="col-span-3" value={data.isbn} onChange={(e) => setData('isbn', e.target.value)} />
-                            </div>
-                            <div className="grid grid-cols-4 items-center gap-4">
-                                <Label htmlFor="username" className="text-right">
-                                    Title
-                                </Label>
-                                <Input id="title" value={data.title} className="col-span-3" onChange={(e) => setData('title', e.target.value)} />
-                            </div>
-                            <div className="grid grid-cols-4 items-center gap-4">
-                                <Label htmlFor="username" className="text-right">
-                                    Slug
-                                </Label>
-                                <Input id="slug" value={data.slug} className="col-span-3" onChange={(e) => setData('slug', e.target.value)} />
-                            </div>
-                            <div className="grid grid-cols-4 items-center gap-4">
-                                <Label htmlFor="description" className="text-right">
-                                    Description
-                                </Label>
-                                <Textarea
-                                    className="w-100"
-                                    placeholder="Book description ..."
-                                    id="description"
-                                    value={data.description}
-                                    onChange={(e) => setData('description', e.target.value)}
-                                />
-                            </div>
-                            {/* <div className="grid grid-cols-4 items-center gap-4">
-                                <Label htmlFor="description" className="text-right">
-                                    Gender
-                                </Label>
-                                <Select>
-                                    <SelectTrigger>
-                                        <SelectValue placeholder="Select a gender" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectLabel>Genders</SelectLabel>
-                                        {genders.map((gender) => (
-                                            <SelectItem value={String(gender.id)} key={gender.id}>
-                                                {gender.name}
-                                            </SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
-                            </div> */}
-                        </div>
-                        <DialogFooter>
-                            <Button type="button" onClick={submit}>
-                                Save changes
+            <div className="w-full p-4">
+                <div className="flex items-center py-4">
+                    <Input
+                        placeholder="Filter emails..."
+                        value={(table.getColumn('email')?.getFilterValue() as string) ?? ''}
+                        onChange={(event) => table.getColumn('email')?.setFilterValue(event.target.value)}
+                        className="max-w-sm"
+                    />
+                    <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                            <Button variant="outline" className="ml-auto">
+                                Columns <ChevronDown />
                             </Button>
-                        </DialogFooter>
-                    </DialogContent>
-                </Dialog>
-            </header>
-            <div className="flex h-full flex-1 flex-col gap-4 rounded-xl p-4">
-                <Table>
-                    <TableCaption>A list of your recent books.</TableCaption>
-                    <TableHeader>
-                        <TableRow>
-                            <TableHead className="w-[100px]">Title</TableHead>
-                            <TableHead>Gender</TableHead>
-                            <TableHead className="text-right">Created At</TableHead>
-                        </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                        {books.map((book) => (
-                            <TableRow key={book.isbn}>
-                                <TableCell className="font-medium">{book.title}</TableCell>
-                                <TableCell>{book.gender.name}</TableCell>
-                                <TableCell className="text-right">{book.created_at}</TableCell>
-                            </TableRow>
-                        ))}
-                    </TableBody>
-                    <TableFooter>
-                        <TableRow>
-                            <TableCell colSpan={3}>Total</TableCell>
-                            <TableCell className="text-right">{books.length}</TableCell>
-                        </TableRow>
-                    </TableFooter>
-                </Table>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                            {table
+                                .getAllColumns()
+                                .filter((column) => column.getCanHide())
+                                .map((column) => {
+                                    return (
+                                        <DropdownMenuCheckboxItem
+                                            key={column.id}
+                                            className="capitalize"
+                                            checked={column.getIsVisible()}
+                                            onCheckedChange={(value) => column.toggleVisibility(!!value)}
+                                        >
+                                            {column.id}
+                                        </DropdownMenuCheckboxItem>
+                                    );
+                                })}
+                        </DropdownMenuContent>
+                    </DropdownMenu>
+                </div>
+                <div className="rounded-md border">
+                    <Table>
+                        <TableHeader>
+                            {table.getHeaderGroups().map((headerGroup) => (
+                                <TableRow key={headerGroup.id}>
+                                    {headerGroup.headers.map((header) => {
+                                        return (
+                                            <TableHead key={header.id}>
+                                                {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
+                                            </TableHead>
+                                        );
+                                    })}
+                                </TableRow>
+                            ))}
+                        </TableHeader>
+                        <TableBody>
+                            {table.getRowModel().rows?.length ? (
+                                table.getRowModel().rows.map((row) => (
+                                    <TableRow key={row.id} data-state={row.getIsSelected() && 'selected'}>
+                                        {row.getVisibleCells().map((cell) => (
+                                            <TableCell key={cell.id}>{flexRender(cell.column.columnDef.cell, cell.getContext())}</TableCell>
+                                        ))}
+                                    </TableRow>
+                                ))
+                            ) : (
+                                <TableRow>
+                                    <TableCell colSpan={columns.length} className="h-24 text-center">
+                                        No results.
+                                    </TableCell>
+                                </TableRow>
+                            )}
+                        </TableBody>
+                    </Table>
+                </div>
+                <div className="flex items-center justify-end space-x-2 py-4">
+                    <div className="text-muted-foreground flex-1 text-sm">
+                        {table.getFilteredSelectedRowModel().rows.length} of {table.getFilteredRowModel().rows.length} row(s) selected.
+                    </div>
+                    <div className="space-x-2">
+                        <Button variant="outline" size="sm" onClick={() => table.previousPage()} disabled={!table.getCanPreviousPage()}>
+                            Previous
+                        </Button>
+                        <Button variant="outline" size="sm" onClick={() => table.nextPage()} disabled={!table.getCanNextPage()}>
+                            Next
+                        </Button>
+                    </div>
+                </div>
             </div>
         </AppLayout>
     );

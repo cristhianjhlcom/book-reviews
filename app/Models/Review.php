@@ -9,4 +9,11 @@ class Review extends Model
 {
     /** @use HasFactory<\Database\Factories\ReviewFactory> */
     use HasFactory;
+
+    protected $fillable = [
+        'book_isbn',
+        'user_id',
+        'comment',
+        'rating',
+    ];
 }
