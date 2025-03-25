@@ -2,14 +2,21 @@
 
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
+use App\Models\Book;
+use App\Models\Gender;
 
 Route::get('/', function () {
-    return Inertia::render('welcome');
+    return Inertia::render('welcome', [
+        'books' => Book::all(),
+    ]);
 })->name('home');
 
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('dashboard', function () {
-        return Inertia::render('dashboard');
+        return Inertia::render('dashboard', [
+            'books' => Book::with('gender')->get(),
+            'genders' => Gender::all(),
+        ]);
     })->name('dashboard');
 });
 

@@ -2,7 +2,7 @@ import { type SharedData } from '@/types';
 import { Head, Link, usePage } from '@inertiajs/react';
 
 export default function Welcome() {
-    const { auth } = usePage<SharedData>().props;
+    const { books } = usePage<SharedData>().props;
 
     return (
         <>
@@ -16,8 +16,12 @@ export default function Welcome() {
                 </div>
             </header>
             <div className="max-w-5xl mx-auto py-6">
-                <h1>Book Revies ⭐</h1>
-                <p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Obcaecati porro cumque iusto ad aperiam accusamus et debitis ratione, illum eius!</p>
+                {books.map((book) => (
+                    <div key={book.isbn}>
+                        <h1>{book.title}</h1>
+                        <p>{book.description ?? 'No description'}</p>
+                    </div>
+                ))}
             </div>
         </>
     );

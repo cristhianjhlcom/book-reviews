@@ -1,6 +1,24 @@
 import { LucideIcon } from 'lucide-react';
 import type { Config } from 'ziggy-js';
 
+export interface Gender {
+    id: number;
+    name: string;
+    slug: string;
+    created_at: string;
+    updated_at: string;
+}
+
+export interface Book {
+    isbn: string;
+    title: string;
+    slug: string;
+    description?: string;
+    gender: Gender;
+    created_at: string;
+    updated_at: string;
+}
+
 export interface Auth {
     user: User;
 }
@@ -23,6 +41,8 @@ export interface NavItem {
 }
 
 export interface SharedData {
+    books: Book[];
+    genders: Gender[];
     name: string;
     quote: { message: string; author: string };
     auth: Auth;
