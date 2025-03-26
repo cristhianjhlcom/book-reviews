@@ -16,6 +16,12 @@ import * as React from 'react';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import {
+    Dialog,
+    DialogContent,
+    DialogTitle,
+    DialogTrigger
+} from "@/components/ui/dialog";
+import {
     DropdownMenu,
     DropdownMenuCheckboxItem,
     DropdownMenuContent,
@@ -27,56 +33,24 @@ import {
 import { Input } from '@/components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import AppLayout from '@/layouts/app-layout';
-import { BreadcrumbItem, Gender } from '@/types';
-import { Head } from '@inertiajs/react';
+import { Book, BreadcrumbItem, Gender, SharedData } from '@/types';
+import { Head, usePage } from '@inertiajs/react';
 
-const data: Payment[] = [
-    {
-        id: 'm5gr84i9',
-        amount: 316,
-        status: 'success',
-        email: 'ken99@example.com',
-    },
-    {
-        id: '3u1reuv4',
-        amount: 242,
-        status: 'success',
-        email: 'Abe45@example.com',
-    },
-    {
-        id: 'derv1ws0',
-        amount: 837,
-        status: 'processing',
-        email: 'Monserrat44@example.com',
-    },
-    {
-        id: '5kma53ae',
-        amount: 874,
-        status: 'success',
-        email: 'Silas22@example.com',
-    },
-    {
-        id: 'bhqecj4p',
-        amount: 721,
-        status: 'failed',
-        email: 'carmella@example.com',
-    },
-];
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+import { toast } from "sonner";
+import { z } from "zod";
 
-export type Payment = {
-    id: string;
-    amount: number;
-    status: 'pending' | 'processing' | 'success' | 'failed';
-    email: string;
-};
-
-export type BookForm = {
-    isbn: string;
-    title: string;
-    slug: string;
-    gender?: Gender;
-    description: string;
-};
+import {
+    Form,
+    FormControl,
+    FormField,
+    FormItem,
+    FormLabel,
+    FormMessage
+} from "@/components/ui/form";
+import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Textarea } from '@/components/ui/textarea';
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
@@ -85,7 +59,17 @@ const breadcrumbs: BreadcrumbItem[] = [
     },
 ];
 
-export const columns: ColumnDef<Payment>[] = [
+/*
+type BookForm = {
+    isbn: string;
+    title: string;
+    slug: string;
+    gender?: string;
+    description?: string;
+}
+*/
+
+export const columns: ColumnDef<Book>[] = [
     {
         id: 'select',
         header: ({ table }) => (
@@ -102,42 +86,47 @@ export const columns: ColumnDef<Payment>[] = [
         enableHiding: false,
     },
     {
-        accessorKey: 'status',
-        header: 'Status',
-        cell: ({ row }) => <div className="capitalize">{row.getValue('status')}</div>,
+        accessorKey: 'isbn',
+        header: '#ISBN',
+        cell: ({ row }) => <div className="font-bold capitalize">{row.getValue('isbn')}</div>,
     },
     {
-        accessorKey: 'email',
+        accessorKey: 'title',
         header: ({ column }) => {
             return (
                 <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}>
-                    Email
+                    Title
                     <ArrowUpDown />
                 </Button>
             );
         },
-        cell: ({ row }) => <div className="lowercase">{row.getValue('email')}</div>,
+        cell: ({ row }) => <div className="text-wrap lowercase">{row.getValue('title')}</div>,
     },
     {
-        accessorKey: 'amount',
-        header: () => <div className="text-right">Amount</div>,
-        cell: ({ row }) => {
-            const amount = parseFloat(row.getValue('amount'));
-
-            // Format the amount as a dollar amount
-            const formatted = new Intl.NumberFormat('en-US', {
-                style: 'currency',
-                currency: 'USD',
-            }).format(amount);
-
-            return <div className="text-right font-medium">{formatted}</div>;
+        accessorKey: 'gender',
+        header: ({ column }) => {
+            return (
+                <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}>
+                    Gender
+                    <ArrowUpDown />
+                </Button>
+            );
         },
+        cell: ({ row }) => {
+            const gender: Gender = row.getValue('gender');
+            return <div className="font-bold">{gender.name}</div>;
+        },
+    },
+    {
+        accessorKey: 'description',
+        header: () => <div className="text-right">Description</div>,
+        cell: ({ row }) => <div className="text-wrap lowercase">{row.getValue('description')}</div>,
     },
     {
         id: 'actions',
         enableHiding: false,
         cell: ({ row }) => {
-            const payment = row.original;
+            const book: Book = row.original;
 
             return (
                 <DropdownMenu>
@@ -149,7 +138,7 @@ export const columns: ColumnDef<Payment>[] = [
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
                         <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                        <DropdownMenuItem onClick={() => navigator.clipboard.writeText(payment.id)}>Copy payment ID</DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => navigator.clipboard.writeText(book.isbn)}>Copy ISBN</DropdownMenuItem>
                         <DropdownMenuSeparator />
                         <DropdownMenuItem>View customer</DropdownMenuItem>
                         <DropdownMenuItem>View payment details</DropdownMenuItem>
@@ -160,25 +149,49 @@ export const columns: ColumnDef<Payment>[] = [
     },
 ];
 
+const formSchema = z.object({
+    isbn: z.string().min(2, {
+        message: "ISBN must be at least 2 characters.",
+    }).max(20, {
+        message: "Max number of character is 20.",
+    }),
+    title: z.string().min(2, {
+        message: "Title must be at least 2 characters.",
+    }).max(60, {
+        message: "Max number of character is 60.",
+    }),
+    gender: z.string(),
+    description: z.string(),
+})
+
 export default function Dashboard() {
-    /*
     const { books, genders } = usePage<SharedData>().props;
-    const gender =genders.find((gender) => gender.id) ?? {} as Gender;
+    /*
+    const gender = genders.find((gender) => gender.id) ?? ({} as Gender);
     const { data, setData, post, processing, errors, reset } = useForm<Required<BookForm>>({
         isbn: '',
         title: '',
         slug: '',
-        gender,
+        gender: String(gender.id),
         description: '',
     });
     */
+    const form = useForm<z.infer<typeof formSchema>>({
+        resolver: zodResolver(formSchema),
+        defaultValues: {
+            isbn: "",
+            title: "",
+            gender: "1",
+            description: "",
+        },
+    })
     const [sorting, setSorting] = React.useState<SortingState>([]);
     const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
     const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({});
     const [rowSelection, setRowSelection] = React.useState({});
 
     const table = useReactTable({
-        data,
+        data: books,
         columns,
         onSortingChange: setSorting,
         onColumnFiltersChange: setColumnFilters,
@@ -196,15 +209,100 @@ export default function Dashboard() {
         },
     });
 
+    function onSubmit(values: z.infer<typeof formSchema>) {
+        console.log(values);
+        toast("Book created successfully.")
+    }
+
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Dashboard" />
-            <div className="w-full p-4">
+            <header className="w-full pt-4 px-4 flex justify-end">
+                <div></div>
+                <Dialog>
+                    <DialogTrigger>
+                        Add book
+                    </DialogTrigger>
+                    <DialogContent>
+                        <DialogTitle>Add a new book</DialogTitle>
+                        <Form {...form}>
+                            <form className='space-y-8' onSubmit={form.handleSubmit(onSubmit)}>
+                                <FormField
+                                    control={form.control}
+                                    name="isbn"
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel>ISBN</FormLabel>
+                                            <FormControl>
+                                                <Input placeholder='ISBN' {...field} />
+                                            </FormControl>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
+                                <FormField
+                                    control={form.control}
+                                    name="title"
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel>Title</FormLabel>
+                                            <FormControl>
+                                                <Input placeholder='Harry Potter' {...field} />
+                                            </FormControl>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
+                                <FormField
+                                    control={form.control}
+                                    name="gender"
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel>Gender</FormLabel>
+                                            <FormControl>
+                                                <Select onValueChange={field.onChange} defaultValue={String(field.value)}>
+                                                    <SelectTrigger className="w-full">
+                                                        <SelectValue placeholder="Select a fruit" />
+                                                    </SelectTrigger>
+                                                    <SelectContent>
+                                                        <SelectGroup>
+                                                            <SelectLabel>Gender</SelectLabel>
+                                                            {genders.map((gender) => (
+                                                                <SelectItem key={gender.id} value={String(gender.id)}>{gender.name}</SelectItem>
+                                                            ))}
+                                                        </SelectGroup>
+                                                    </SelectContent>
+                                                </Select>
+                                            </FormControl>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
+                                <FormField
+                                    control={form.control}
+                                    name="description"
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel>Description</FormLabel>
+                                            <FormControl>
+                                                <Textarea placeholder='The choose one...' {...field} />
+                                            </FormControl>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
+                                <Button type="submit">Submit</Button>
+                            </form>
+                        </Form>
+                    </DialogContent>
+                </Dialog>
+            </header>
+            <div className="w-full px-4">
                 <div className="flex items-center py-4">
                     <Input
-                        placeholder="Filter emails..."
-                        value={(table.getColumn('email')?.getFilterValue() as string) ?? ''}
-                        onChange={(event) => table.getColumn('email')?.setFilterValue(event.target.value)}
+                        placeholder="Filter ISBN..."
+                        value={(table.getColumn('isbn')?.getFilterValue() as string) ?? ''}
+                        onChange={(event) => table.getColumn('isbn')?.setFilterValue(event.target.value)}
                         className="max-w-sm"
                     />
                     <DropdownMenu>

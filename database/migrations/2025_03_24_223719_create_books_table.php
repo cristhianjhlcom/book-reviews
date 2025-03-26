@@ -16,7 +16,6 @@ return new class extends Migration
         Schema::create('books', function (Blueprint $table) {
             $table->string('isbn', 20)->primary();
             $table->string('title');
-            $table->string('slug')->unique();
             $table->text('description');
             $table->foreignId('gender_id')->constrained('genders')->cascadeOnDelete();
             $table->timestamps();

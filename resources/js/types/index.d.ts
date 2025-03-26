@@ -12,7 +12,6 @@ export interface Gender {
 export interface Book {
     isbn: string;
     title: string;
-    slug: string;
     description?: string;
     gender: Gender;
     created_at: string;
