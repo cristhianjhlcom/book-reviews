@@ -1,12 +1,13 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Database\Seeders;
 
 use App\Models\Gender;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
-class GenderSeeder extends Seeder
+final class GenderSeeder extends Seeder
 {
     /**
      * Run the database seeds.
@@ -23,7 +24,7 @@ class GenderSeeder extends Seeder
             ['name' => 'Aventura', 'slug' => 'aventura'],
             ['name' => 'Poesía', 'slug' => 'poesia'],
             ['name' => 'Drama', 'slug' => 'drama'],
-            ['name' => 'Thriller', 'slug' => 'thriller']
+            ['name' => 'Thriller', 'slug' => 'thriller'],
         ];
 
         foreach ($genders as $gender) {
