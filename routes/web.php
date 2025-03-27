@@ -2,8 +2,9 @@
 
 declare(strict_types=1);
 
+use App\Http\Controllers\BookCreateController;
+use App\Http\Controllers\BookIndexController;
 use App\Models\Book;
-use App\Models\Gender;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
@@ -14,12 +15,8 @@ Route::get('/', function () {
 })->name('home');
 
 Route::middleware(['auth', 'verified'])->group(function () {
-    Route::get('dashboard', function () {
-        return Inertia::render('dashboard', [
-            'books' => Book::with('gender')->get(),
-            'genders' => Gender::all(),
-        ]);
-    })->name('dashboard');
+    Route::get('dashboard', BookIndexController::class)->name('books.index');
+    Route::post('/books', BookCreateController::class)->name('books.create');
 });
 
 require __DIR__.'/settings.php';

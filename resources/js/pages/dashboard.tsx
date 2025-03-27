@@ -15,12 +15,7 @@ import * as React from 'react';
 
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
-import {
-    Dialog,
-    DialogContent,
-    DialogTitle,
-    DialogTrigger
-} from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import {
     DropdownMenu,
     DropdownMenuCheckboxItem,
@@ -33,22 +28,15 @@ import {
 import { Input } from '@/components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import AppLayout from '@/layouts/app-layout';
-import { Book, BreadcrumbItem, Gender, SharedData } from '@/types';
-import { Head, usePage } from '@inertiajs/react';
+import { Book, BreadcrumbItem, Gender, Review, SharedData } from '@/types';
+import { Head, router, usePage } from '@inertiajs/react';
 
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
-import { toast } from "sonner";
-import { z } from "zod";
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useForm } from 'react-hook-form';
+import { toast } from 'sonner';
+import { z } from 'zod';
 
-import {
-    Form,
-    FormControl,
-    FormField,
-    FormItem,
-    FormLabel,
-    FormMessage
-} from "@/components/ui/form";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 
@@ -103,6 +91,24 @@ export const columns: ColumnDef<Book>[] = [
         cell: ({ row }) => <div className="text-wrap lowercase">{row.getValue('title')}</div>,
     },
     {
+        accessorKey: 'rating',
+        header: ({ column }) => {
+            return (
+                <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}>
+                    Rating
+                    <ArrowUpDown />
+                </Button>
+            );
+        },
+        cell: ({ row }) => {
+            const reviews: Review[] = row.original.reviews;
+            const sum = reviews.reduce((acc, current) => current.rating + acc, 0);
+            console.log(sum, reviews.length);
+            const media: number = sum / reviews.length;
+            return <div className="text-center lowercase">{!isNaN(media) ? media : 0}</div>;
+        },
+    },
+    {
         accessorKey: 'gender',
         header: ({ column }) => {
             return (
@@ -150,19 +156,27 @@ export const columns: ColumnDef<Book>[] = [
 ];
 
 const formSchema = z.object({
-    isbn: z.string().min(2, {
-        message: "ISBN must be at least 2 characters.",
-    }).max(20, {
-        message: "Max number of character is 20.",
+    isbn: z
+        .string()
+        .min(2, {
+            message: 'ISBN must be at least 2 characters.',
+        })
+        .max(20, {
+            message: 'Max number of character is 20.',
+        }),
+    title: z
+        .string()
+        .min(2, {
+            message: 'Title must be at least 2 characters.',
+        })
+        .max(60, {
+            message: 'Max number of character is 60.',
+        }),
+    gender_id: z.string(),
+    description: z.string().max(300, {
+        message: 'The description field must not be greater than 300 characters.',
     }),
-    title: z.string().min(2, {
-        message: "Title must be at least 2 characters.",
-    }).max(60, {
-        message: "Max number of character is 60.",
-    }),
-    gender: z.string(),
-    description: z.string(),
-})
+});
 
 export default function Dashboard() {
     const { books, genders } = usePage<SharedData>().props;
@@ -179,12 +193,13 @@ export default function Dashboard() {
     const form = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),
         defaultValues: {
-            isbn: "",
-            title: "",
-            gender: "1",
-            description: "",
+            isbn: '',
+            title: '',
+            gender_id: '1',
+            description: '',
         },
-    })
+    });
+    const [createDialog, toggleCreateDialog] = React.useState<boolean>(false);
     const [sorting, setSorting] = React.useState<SortingState>([]);
     const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
     const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({});
@@ -210,23 +225,27 @@ export default function Dashboard() {
     });
 
     function onSubmit(values: z.infer<typeof formSchema>) {
-        console.log(values);
-        toast("Book created successfully.")
+        router.post(route('books.create'), values, {
+            onSuccess: () => {
+                toast('Book created successfully.');
+                toggleCreateDialog(!createDialog);
+            },
+        });
     }
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Dashboard" />
-            <header className="w-full pt-4 px-4 flex justify-end">
+            <header className="flex w-full justify-end px-4 pt-4">
                 <div></div>
-                <Dialog>
-                    <DialogTrigger>
-                        Add book
+                <Dialog open={createDialog} onOpenChange={toggleCreateDialog}>
+                    <DialogTrigger onClick={() => toggleCreateDialog(!createDialog)} asChild>
+                        <Button variant="default">Add book</Button>
                     </DialogTrigger>
                     <DialogContent>
                         <DialogTitle>Add a new book</DialogTitle>
                         <Form {...form}>
-                            <form className='space-y-8' onSubmit={form.handleSubmit(onSubmit)}>
+                            <form className="space-y-4" onSubmit={form.handleSubmit(onSubmit)}>
                                 <FormField
                                     control={form.control}
                                     name="isbn"
@@ -234,7 +253,7 @@ export default function Dashboard() {
                                         <FormItem>
                                             <FormLabel>ISBN</FormLabel>
                                             <FormControl>
-                                                <Input placeholder='ISBN' {...field} />
+                                                <Input placeholder="ISBN" {...field} />
                                             </FormControl>
                                             <FormMessage />
                                         </FormItem>
@@ -247,7 +266,7 @@ export default function Dashboard() {
                                         <FormItem>
                                             <FormLabel>Title</FormLabel>
                                             <FormControl>
-                                                <Input placeholder='Harry Potter' {...field} />
+                                                <Input placeholder="Harry Potter" {...field} />
                                             </FormControl>
                                             <FormMessage />
                                         </FormItem>
@@ -255,7 +274,7 @@ export default function Dashboard() {
                                 />
                                 <FormField
                                     control={form.control}
-                                    name="gender"
+                                    name="gender_id"
                                     render={({ field }) => (
                                         <FormItem>
                                             <FormLabel>Gender</FormLabel>
@@ -268,7 +287,9 @@ export default function Dashboard() {
                                                         <SelectGroup>
                                                             <SelectLabel>Gender</SelectLabel>
                                                             {genders.map((gender) => (
-                                                                <SelectItem key={gender.id} value={String(gender.id)}>{gender.name}</SelectItem>
+                                                                <SelectItem key={gender.id} value={String(gender.id)}>
+                                                                    {gender.name}
+                                                                </SelectItem>
                                                             ))}
                                                         </SelectGroup>
                                                     </SelectContent>
@@ -285,13 +306,13 @@ export default function Dashboard() {
                                         <FormItem>
                                             <FormLabel>Description</FormLabel>
                                             <FormControl>
-                                                <Textarea placeholder='The choose one...' {...field} />
+                                                <Textarea placeholder="The choose one..." {...field} />
                                             </FormControl>
                                             <FormMessage />
                                         </FormItem>
                                     )}
                                 />
-                                <Button type="submit">Submit</Button>
+                                <Button type="submit">Save book</Button>
                             </form>
                         </Form>
                     </DialogContent>

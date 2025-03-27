@@ -9,11 +9,22 @@ export interface Gender {
     updated_at: string;
 }
 
+export interface Review {
+    id: number;
+    book_isbn: string;
+    comment: string;
+    rating: number;
+    created_at: string;
+    updated_at: string;
+}
+
 export interface Book {
     isbn: string;
     title: string;
     description?: string;
     gender: Gender;
+    reviews: Review[];
+    rating: number;
     created_at: string;
     updated_at: string;
 }
