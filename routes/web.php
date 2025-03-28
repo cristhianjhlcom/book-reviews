@@ -15,8 +15,10 @@ Route::get('/', function () {
 })->name('home');
 
 Route::middleware(['auth', 'verified'])->group(function () {
-    Route::get('dashboard', BookIndexController::class)->name('books.index');
-    Route::post('/books', BookCreateController::class)->name('books.create');
+    Route::middleware(['is-admin'])->group(function () {
+        Route::get('/books', BookIndexController::class)->name('books.index');
+        Route::post('/books', BookCreateController::class)->name('books.create');
+    });
 });
 
 require __DIR__.'/settings.php';

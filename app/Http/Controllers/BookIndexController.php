@@ -7,7 +7,6 @@ namespace App\Http\Controllers;
 use App\Models\Book;
 use App\Models\Gender;
 use Illuminate\Http\Request;
-use Inertia\Inertia;
 
 final class BookIndexController extends Controller
 {
@@ -16,7 +15,7 @@ final class BookIndexController extends Controller
      */
     public function __invoke(Request $request)
     {
-        return Inertia::render('dashboard', [
+        return inertia('books/views/index', [
             'books' => Book::with(['gender', 'reviews'])->get(),
             'genders' => Gender::all(),
         ]);
