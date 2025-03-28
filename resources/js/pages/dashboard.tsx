@@ -103,7 +103,6 @@ export const columns: ColumnDef<Book>[] = [
         cell: ({ row }) => {
             const reviews: Review[] = row.original.reviews;
             const sum = reviews.reduce((acc, current) => current.rating + acc, 0);
-            console.log(sum, reviews.length);
             const media: number = sum / reviews.length;
             return <div className="text-center lowercase">{!isNaN(media) ? media : 0}</div>;
         },

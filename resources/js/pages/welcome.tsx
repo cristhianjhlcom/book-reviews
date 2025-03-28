@@ -11,11 +11,11 @@ export default function Welcome() {
                 <link href="https://fonts.bunny.net/css?family=instrument-sans:400,500,600" rel="stylesheet" />
             </Head>
             <header>
-                <div className="max-w-5xl mx-auto py-4">
-                    <Link href={route('dashboard')}>Dashboard</Link>
+                <div className="mx-auto max-w-5xl py-4">
+                    <Link href={route('books.index')}>Books</Link>
                 </div>
             </header>
-            <div className="max-w-5xl mx-auto py-6">
+            <div className="mx-auto max-w-5xl py-6">
                 {books.map((book) => (
                     <div key={book.isbn}>
                         <h1>{book.title}</h1>
