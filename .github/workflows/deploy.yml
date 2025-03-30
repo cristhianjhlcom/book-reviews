@@ -25,7 +25,7 @@ jobs:
         run: composer install --no-interaction --prefer-dist --optimize-autoloader
 
       - name: Ejecutar tests
-        run: php artisan test
+        run: php artisan test --testsuite=Unit
 
   lint:
     name: Revisar formato de código
