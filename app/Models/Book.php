@@ -19,6 +19,7 @@ final class Book extends Model
         'title',
         'description',
         'gender_id',
+        'image',
     ];
 
     public function gender(): BelongsTo

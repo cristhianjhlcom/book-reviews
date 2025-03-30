@@ -17,6 +17,7 @@ return new class extends Migration
             $table->string('isbn', 20)->primary();
             $table->string('title');
             $table->text('description');
+            $table->string('image')->nullable()->default(null);
             $table->foreignId('gender_id')->constrained('genders')->cascadeOnDelete();
             $table->timestamps();
         });

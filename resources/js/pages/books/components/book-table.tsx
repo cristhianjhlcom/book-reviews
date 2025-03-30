@@ -1,3 +1,4 @@
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import {
@@ -43,6 +44,18 @@ const columns: ColumnDef<Book>[] = [
         ),
         enableSorting: false,
         enableHiding: false,
+    },
+    {
+        accessorKey: 'thumbnail',
+        header: '',
+        cell: ({ row }) => {
+            return (
+                <Avatar>
+                    <AvatarImage src={row.original.images.thumbnail} alt="@shadcn" />
+                    <AvatarFallback>BR</AvatarFallback>
+                </Avatar>
+            );
+        },
     },
     {
         accessorKey: 'isbn',

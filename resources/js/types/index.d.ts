@@ -27,6 +27,7 @@ export interface Book {
     rating: number;
     created_at: string;
     updated_at: string;
+    images: Record<string, string>;
 }
 
 export interface Auth {

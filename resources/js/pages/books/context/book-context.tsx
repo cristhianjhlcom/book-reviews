@@ -1,4 +1,5 @@
 import { Book, Gender, SharedData } from '@/types';
+import { ExtFile } from '@files-ui/react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { router, usePage } from '@inertiajs/react';
 import { createContext, ReactNode, useState } from 'react';
@@ -8,11 +9,13 @@ import { z } from 'zod';
 
 type BookContext = {
     books: Book[];
+    files: ExtFile[];
     genders: Gender[];
     form: UseFormReturn<z.infer<typeof formSchema>>;
     createDialog: boolean;
     toggleCreateDialog: () => void;
     onSubmit: (values: z.infer<typeof formSchema>) => void;
+    onUpdateFiles: (files: ExtFile[]) => void;
 };
 
 type Props = {
@@ -21,11 +24,13 @@ type Props = {
 
 export const BookPageContext = createContext<BookContext>({
     books: [],
+    files: [],
     genders: [],
     form: null as unknown as UseFormReturn<z.infer<typeof formSchema>>,
     createDialog: false,
     toggleCreateDialog: () => {},
     onSubmit: () => {},
+    onUpdateFiles: () => {},
 });
 
 const formSchema = z.object({
@@ -54,6 +59,7 @@ const formSchema = z.object({
 export default function BookContextProvider({ children }: Props) {
     const { books, genders } = usePage<SharedData>().props;
     const [createDialog, setCreateDialog] = useState<boolean>(false);
+    const [files, setFiles] = useState<ExtFile[]>([]);
     /*
     const gender = genders.find((gender) => gender.id) ?? ({} as Gender);
     const { data, setData, post, processing, errors, reset } = useForm<Required<BookForm>>({
@@ -74,28 +80,47 @@ export default function BookContextProvider({ children }: Props) {
         },
     });
 
+    function onUpdateFiles(files: ExtFile[]) {
+        setFiles(files);
+    }
+
     function toggleCreateDialog() {
         setCreateDialog(!createDialog);
     }
 
     function onSubmit(values: z.infer<typeof formSchema>) {
-        router.post(route('books.create'), values, {
-            onSuccess: () => {
-                toast('Book created successfully.');
-                toggleCreateDialog();
-            },
+        const image = files.length > 0 ? files[0].file : null;
+        console.log({
+            values,
+            image,
+            files,
         });
+        router.post(
+            route('books.create'),
+            {
+                ...values,
+                image,
+            },
+            {
+                onSuccess: () => {
+                    toast('Book created successfully.');
+                    toggleCreateDialog();
+                },
+            },
+        );
     }
 
     return (
         <BookPageContext.Provider
             value={{
                 books,
+                files,
                 genders,
                 form,
                 createDialog,
                 toggleCreateDialog,
                 onSubmit,
+                onUpdateFiles,
             }}
         >
             {children}

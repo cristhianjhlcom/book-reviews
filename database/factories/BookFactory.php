@@ -6,7 +6,6 @@ namespace Database\Factories;
 
 use App\Models\Gender;
 use Illuminate\Database\Eloquent\Factories\Factory;
-use Illuminate\Support\Str;
 
 /**
  * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\Book>
@@ -28,6 +27,7 @@ final class BookFactory extends Factory
             'title' => $title,
             'description' => $this->faker->paragraph(3),
             'gender_id' => $gender->id,
+            'image' => null,
         ];
     }
 }

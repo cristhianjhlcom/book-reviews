@@ -4,11 +4,12 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
+import { Dropzone, FileMosaic } from '@files-ui/react';
 import { useContext } from 'react';
 import { BookPageContext } from '../context/book-context';
 
 export default function BookCreateDialog() {
-    const { form, genders, createDialog, toggleCreateDialog, onSubmit } = useContext(BookPageContext);
+    const { form, genders, files, createDialog, toggleCreateDialog, onSubmit, onUpdateFiles } = useContext(BookPageContext);
 
     return (
         <Dialog open={createDialog} onOpenChange={toggleCreateDialog}>
@@ -85,6 +86,11 @@ export default function BookCreateDialog() {
                                 </FormItem>
                             )}
                         />
+                        <Dropzone onChange={onUpdateFiles} value={files}>
+                            {files.map((file, idx) => (
+                                <FileMosaic key={idx} {...file} preview />
+                            ))}
+                        </Dropzone>
                         <Button type="submit">Save book</Button>
                     </form>
                 </Form>
