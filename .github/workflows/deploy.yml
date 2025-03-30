@@ -60,6 +60,9 @@ jobs:
       - name: Checkout del repositorio
         uses: actions/checkout@v4
 
+      - name: Configurar APP_KEY
+        run: echo "APP_KEY=${{ secrets.APP_KEY }}" >> .env
+
       - name: Conectar al servidor y desplegar
         uses: appleboy/ssh-action@master
         with:
@@ -79,5 +82,5 @@ jobs:
             php artisan route:clear
             php artisan config:cache
             php artisan queue:restart
-            sudo systemctl restart php8.3-fpm
+            sudo systemctl restart php8.4-fpm
             sudo supervisorctl restart inertia-ssr
