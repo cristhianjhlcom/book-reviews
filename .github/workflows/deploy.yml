@@ -24,6 +24,9 @@ jobs:
       - name: Instalar dependencias
         run: composer install --no-interaction --prefer-dist --optimize-autoloader
 
+      - name: Genere APP KEY
+        run: php artisan key:generate
+
       - name: Ejecutar tests
         run: php artisan test --testsuite=Unit
 
