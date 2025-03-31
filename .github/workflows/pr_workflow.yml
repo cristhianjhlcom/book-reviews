@@ -1,7 +1,7 @@
-name: Pull Request Workflow
+name: Push Workflow
 
 on:
-  pull_request:
+  push:
     branches:
       - main
 
