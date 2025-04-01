@@ -57,7 +57,6 @@ jobs:
           script: |
             su - superadmin
             cd /var/www/book-reviews
-            git config --global --add safe.directory /var/www/book-reviews
             git reset --hard HEAD
             git clean -fd
             git pull origin main
