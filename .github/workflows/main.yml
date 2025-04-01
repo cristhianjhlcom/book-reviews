@@ -34,7 +34,7 @@ jobs:
       - name: Install NPM Dependencies
         run: npm install --force
 
-      - name: Build Assets with Vide
+      - name: Build Assets with Vite
         run: npm run build
 
       - name: Generate Key
@@ -45,3 +45,27 @@ jobs:
 
       - name: Execute tests (Unit tests) using Pest
         run: php artisan test --testsuite=Unit
+
+      - name: Deploy Using SSH
+        uses: appleboy/ssh-action@v1.1.0
+        with:
+          host: ${{ secrets.DO_HOST }}
+          username: ${{ secrets.DO_USER }}
+          # key: ${{ secrets.DO_SSH_KEY }}
+          password: ${{ secrets.DO_PASSWORD }}
+          script: |
+            git pull origin main
+            composer install
+            npm install --force
+            php artisan migrate --force
+            npm run build
+            php artisan migrate --force
+            php artisan cache:clear
+            php artisan config:clear
+            php artisan route:clear
+            php artisan view:clear
+
+            php artisan config:cache
+            php artisan route:cache
+            php artisan view:cache
+            php artisan optimize
