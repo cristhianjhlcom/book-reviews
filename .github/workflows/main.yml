@@ -47,11 +47,12 @@ jobs:
         run: php artisan test --testsuite=Unit
 
       - name: Deploy Using SSH
-        uses: appleboy/ssh-action@v1.1.0
+        uses: appleboy/ssh-action@v1
         with:
           host: ${{ secrets.DO_HOST }}
           username: ${{ secrets.DO_USER }}
-          password: ${{ secrets.DO_PASSWORD }}
+          key: ${{ secrets.DO_SSH_KEY }}
+          port: 22
           script: |
             git pull origin main
             composer install
