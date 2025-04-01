@@ -64,7 +64,7 @@ jobs:
             composer install --no-interaction --prefer-dist --optimize-autoloader
             yarn install --force
             php artisan migrate --force
-            npm run build
+            yarn build
             php artisan migrate --force
             php artisan cache:clear
             php artisan config:clear
