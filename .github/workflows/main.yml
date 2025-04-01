@@ -55,6 +55,7 @@ jobs:
           passphrase: ${{ secrets.DO_PASSWORD }}
           port: 22
           script: |
+            su - superadmin
             cd /var/www/book-reviews
             git pull origin main
             composer install
