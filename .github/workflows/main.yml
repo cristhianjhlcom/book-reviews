@@ -31,6 +31,13 @@ jobs:
       - name: Generate Key
         run: php artisan key:generate
 
+      - name: Wait for MySQL to be Ready
+        run: |
+          until mysqladmin ping -h 127.0.0.1 --silent; do
+              echo "Waiting for MySQL..."
+              sleep 3
+          done
+
       - name: Execute tests (Unit tests) using Pest
         env:
           DB_CONNECTION: mysql
