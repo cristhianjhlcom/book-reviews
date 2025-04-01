@@ -63,10 +63,16 @@ jobs:
 
             export COMPOSER_ALLOW_SUPERUSER=1
             composer install --no-interaction --prefer-dist --optimize-autoloader
-            export NVM_DIR="$HOME/.nvm"
 
+            echo "CARGANDO NVM..."
+            export NVM_DIR="$([ -z "${XDG_CONFIG_HOME-}" ] && printf %s "${HOME}/.nvm" || printf %s "${XDG_CONFIG_HOME}/nvm")"
             [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+            export PATH="$NVM_DIR/versions/node/v22.14.0/bin:$PATH"
+            source ~/.bashrc
+
+            echo "VERIFICANDO NODE JS..."
             node --version
+            npm --version
             npm install --force
             npm run build
 
