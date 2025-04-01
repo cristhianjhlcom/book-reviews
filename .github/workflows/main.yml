@@ -57,8 +57,10 @@ jobs:
           script: |
             su - superadmin
             cd /var/www/book-reviews
+            git config --global --add safe.directory /var/www/book-reviews
             git pull origin main
-            composer install
+            export COMPOSER_ALLOW_SUPERUSER=1
+            composer install --no-interaction --prefer-dist --optimize-autoloader
             npm install --force
             php artisan migrate --force
             npm run build
