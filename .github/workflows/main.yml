@@ -43,7 +43,7 @@ jobs:
       - name: Run Migrations
         run: php artisan migrate
 
-      - name: Execute tests (Unit tests) using Pest
+      - name: Execute tests (Unit) using Pest
         run: php artisan test --testsuite=Unit
 
       - name: Deploy Using SSH
