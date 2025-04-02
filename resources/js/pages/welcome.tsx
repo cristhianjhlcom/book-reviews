@@ -15,7 +15,8 @@ export default function Welcome() {
                     <Link href={route('books.index')}>Books</Link>
                 </div>
             </header>
-            <div className="mx-auto max-w-5xl bg-red-900 py-6">
+            <div className="mx-auto max-w-5xl space-y-4 rounded-xl bg-gray-800 p-6">
+                <h4 className="text-3xl font-semibold text-gray-300">Lista de Libros 📚</h4>
                 {books.map((book) => (
                     <div key={book.isbn}>
                         <h1>{book.title}</h1>
