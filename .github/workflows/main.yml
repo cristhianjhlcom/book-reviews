@@ -84,6 +84,7 @@ jobs:
             npm --version
             npm install --force
             npm run build
+            npm run build:ssr
 
             php artisan migrate --force
             php artisan cache:clear
