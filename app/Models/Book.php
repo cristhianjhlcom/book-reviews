@@ -32,6 +32,13 @@ final class Book extends Model
         return $this->hasMany(Review::class, 'book_isbn', 'isbn');
     }
 
+    public function getAverageRatingAttribute(): float
+    {
+        $ratings = $this->reviews->pluck('rating')->toArray();
+
+        return round(array_sum($ratings) / count($ratings), 1);
+    }
+
     protected function casts(): array
     {
         return [

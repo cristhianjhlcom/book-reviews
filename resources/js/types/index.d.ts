@@ -24,10 +24,22 @@ export interface Book {
     description?: string;
     gender: Gender;
     reviews: Review[];
-    rating: number;
+    rating: {
+        count: number;
+        average: number;
+        total: number;
+        stars: number;
+        reviews: Review[];
+    };
     created_at: string;
     updated_at: string;
-    images: Record<string, string>;
+    images: {
+        original: string;
+        large: string;
+        medium: string;
+        small: string;
+        thumbnail: string;
+    };
 }
 
 export interface Auth {
@@ -52,8 +64,11 @@ export interface NavItem {
 }
 
 export interface SharedData {
+    book: Book;
     books: Book[];
+    booksCount: number;
     genders: Gender[];
+    gendersCount: number;
     name: string;
     quote: { message: string; author: string };
     auth: Auth;

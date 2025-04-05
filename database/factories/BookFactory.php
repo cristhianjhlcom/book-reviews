@@ -27,7 +27,7 @@ final class BookFactory extends Factory
             'title' => $title,
             'description' => $this->faker->paragraph(3),
             'gender_id' => $gender->id,
-            'image' => null,
+            'image' => 'no-preview.jpg',
         ];
     }
 }

@@ -4,15 +4,12 @@ declare(strict_types=1);
 
 use App\Http\Controllers\BookCreateController;
 use App\Http\Controllers\BookIndexController;
-use App\Models\Book;
+use App\Http\Controllers\HomeIndexController;
+use App\Http\Controllers\HomeShowController;
 use Illuminate\Support\Facades\Route;
-use Inertia\Inertia;
 
-Route::get('/', function () {
-    return Inertia::render('welcome', [
-        'books' => Book::all(),
-    ]);
-})->name('home');
+Route::get('/', HomeIndexController::class)->name('home.index');
+Route::get('/books/{id}', HomeShowController::class)->name('home.show');
 
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::middleware(['is-admin'])->group(function () {
