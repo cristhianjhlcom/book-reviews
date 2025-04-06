@@ -153,6 +153,15 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
+      - name: Create Book Reviews directory
+        run: |
+          mkdir -p /var/www/book-reviews
+          sudo chown -R www-data:www-data /var/www/book-reviews
+          sudo chmod -R 755 /var/www/book-reviews/
+      - name: Check current directory
+        run: |
+          pwd
+          ls -laF
       - name: Download public/build artifact
         uses: actions/download-artifact@v4
         with:
