@@ -6,54 +6,84 @@ on:
       - main
 
 jobs:
-  tests:
+  build:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v3
-
-      - name: Setup PHP8.4
-        uses: shivammathur/setup-php@v2
+      - uses: actions/checkout@v3
         with:
-          php-version: 8.4
-
-      - name: Create Database
-        run: touch ./database/database.sqlite
-
-      - name: Copy .env
-        run: php -r "file_exists('.env') || copy('.env.example', '.env');"
-
-      - name: Install Composer Dependencies
-        run: composer install -q --no-ansi --no-interaction --no-scripts --no-suggest --no-progress --prefer-dist
-
-      - name: Install Node.JS Dependencies
-        uses: actions/setup-node@v2
+          fetch-depth: 0
+      - uses: actions/setup-node@v2
         with:
           node-version: '20.12.0'
-
+      - name: NPM Cache dependencies
+        uses: actions/cache@v4
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
       - name: Install NPM Dependencies
         run: npm install --force
-
       - name: Build Assets with Vite
         run: npm run build
+      - name: Build SSR Assets with Vite
+        run: npm run build:ssr
+      - name: Upload public/build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: public-build
+          path: public/build
+      - name: Upload bootstrap/ssr artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: bootstrap-ssr
+          path: bootstrap/ssr
 
+  tests:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: 8.4
+      - name: Create Database
+        run: touch ./database/database.sqlite
+      - name: Copy .env
+        run: php -r "file_exists('.env') || copy('.env.example', '.env');"
+      - name: Download public/build artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: public-build
+          path: public/build
+      - name: Download bootstrap/ssr artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: bootstrap-ssr
+          path: bootstrap/ssr
+      - name: Cache Composer dependencies
+        uses: actions/cache@v4
+        with:
+          path: vendor
+          key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-composer-
+      - name: Install Composer Dependencies
+        run: composer install -q --no-ansi --no-interaction --no-scripts --no-suggest --no-progress --prefer-dist
       - name: Generate Key
         run: php artisan key:generate
-
       - name: Run Migrations
         run: php artisan migrate
-
       - name: Execute tests (Unit) using Pest
         run: php artisan test --testsuite=Unit
 
-  build:
+  deploy:
     needs: tests
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v3
-
-      - name: Deploy Using SSH
+      - uses: actions/checkout@v3
+      - name: Deploy to Digital Ocean Droplet
+        if: ${{ github.event_name == 'push' }}
         uses: appleboy/ssh-action@v1
         with:
           host: ${{ secrets.DO_HOST }}
@@ -70,21 +100,6 @@ jobs:
 
             export COMPOSER_ALLOW_SUPERUSER=1
             composer install --no-interaction --prefer-dist --optimize-autoloader
-
-            echo "INSTALANDO NVM..."
-            curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.2/install.sh | bash
-            export NVM_DIR="$HOME/.nvm"
-            [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
-
-            nvm install 22.14.0
-            nvm use 22.14.0
-
-            echo "VERIFICANDO NODE JS..."
-            node --version
-            npm --version
-            npm install --force
-            npm run build
-            npm run build:ssr
 
             php artisan migrate --force
             php artisan cache:clear
