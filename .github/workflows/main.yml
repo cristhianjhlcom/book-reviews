@@ -211,12 +211,11 @@ jobs:
     needs: [deploy]
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
       - name: Delete public/build artifact
-        uses: actions/delete-artifact@v3
+        uses: geekyeggo/delete-artifact@v5
         with:
           name: public-build
       - name: Delete bootstrap/ssr artifact
-        uses: actions/delete-artifact@v3
+        uses: geekyeggo/delete-artifact@v5
         with:
           name: bootstrap-ssr
