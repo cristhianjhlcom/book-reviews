@@ -121,8 +121,13 @@ jobs:
             php artisan view:cache
             php artisan optimize
 
-            sudo supervisorctl reread
-            sudo supervisorctl update
-            sudo supervisorctl start inertia-ssr
+            if ! sudo supervisorctl status inertia-ssr | grep -q "RUNNING"; then
+              echo "Inertia SSR is not running. Starting..."
+              sudo supervisorctl reread
+              sudo supervisorctl update
+              sudo supervisorctl start inertia-ssr
+            else
+              echo "Inertia SSR is already running."
+            fi
 
             sudo systemctl restart nginx
