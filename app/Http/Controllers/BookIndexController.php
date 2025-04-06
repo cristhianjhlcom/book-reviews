@@ -17,6 +17,7 @@ final class BookIndexController extends Controller
     public function __invoke(Request $request)
     {
         $folder = config('filesystems.disks.spaces.folder');
+
         return inertia('books/views/index', [
             'books' => Book::with(['gender', 'reviews'])->get()->map(function ($book) use ($folder) {
                 return [
