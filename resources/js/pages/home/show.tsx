@@ -1,3 +1,4 @@
+import { AspectRatio } from '@/components/ui/aspect-ratio';
 import { SharedData } from '@/types';
 import { Head, Link, usePage } from '@inertiajs/react';
 
@@ -18,7 +19,9 @@ export default function Show() {
             <div className="mx-auto max-w-5xl space-y-5">
                 <section className="w-full">
                     <article className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                        <img src={book.images.medium} alt={book.title} className="w-full rounded-xl" />
+                        <AspectRatio ratio={2 / 3}>
+                            <img src={book.images.medium} alt={book.title} className="rounded-sm object-cover" />
+                        </AspectRatio>
                         <div className="space-y-2">
                             <h1 className="text-4xl font-semibold">{book.title}</h1>
                             <div>
