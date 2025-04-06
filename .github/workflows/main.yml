@@ -153,27 +153,16 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - uses: shivammathur/setup-php@v2
+      - name: Download public/build artifact
+        uses: actions/download-artifact@v4
         with:
-          php-version: 8.4
-          extensions: mbstring, dom, fileinfo, mysql, libxml, xml, xmlwriter, dom, tokenizer, filter, json, phar, pcre, openssl, pdo, intl, curl
-      - name: Cache Composer dependencies
-        uses: actions/cache@v4
+          name: public-build
+          path: /var/www/book-reviews/public/build
+      - name: Download bootstrap/ssr artifact
+        uses: actions/download-artifact@v4
         with:
-          path: vendor
-          key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-composer-
-      - uses: actions/setup-node@v2
-        with:
-          node-version: '20.12.0'
-      - name: NPM Cache dependencies
-        uses: actions/cache@v4
-        with:
-          path: ~/.npm
-          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
-          restore-keys: |
-            ${{ runner.os }}-node-
+          name: bootstrap-ssr
+          path: /var/www/book-reviews/bootstrap/ssr
       - name: Deploy to Digital Ocean Droplet
         if: ${{ github.event_name == 'push' }}
         uses: appleboy/ssh-action@v1
@@ -197,10 +186,6 @@ jobs:
             composer install --no-interaction --prefer-dist --optimize-autoloader
 
             php artisan migrate --force
-
-            npm run build
-            npm run build:ssr
-
 
             php artisan cache:clear
             php artisan config:clear
