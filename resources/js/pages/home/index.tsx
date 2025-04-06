@@ -17,7 +17,7 @@ export default function Index() {
                 </div>
             </header>
             <div className="mx-auto max-w-5xl space-y-5">
-                <h4 className="text-3xl font-semibold text-white">📚 Lista de Libros ({booksCount})</h4>
+                <h4 className="text-3xl font-semibold text-red-500">📚 Lista de Libros ({booksCount})</h4>
                 <section className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
                     {books.map((book) => (
                         <Link href={route('home.show', { id: book.isbn })} key={book.isbn} className="group">
